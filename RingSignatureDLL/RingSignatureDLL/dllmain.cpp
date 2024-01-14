@@ -44,3 +44,18 @@ DLLEXPORT int __stdcall GetStringPointer(int size, char** str) {
 	}
 	return 0;
 }
+
+DLLEXPORT int __stdcall GetStructPointer(int size, TestStruct** testStruct) {
+
+	for (int i = 0; i < size; i++) {
+		//i番号を5桁の文字列に変換
+		sprintf_s(testStruct[i]->a, sizeof("00000"), "%05d", i);
+		sprintf_s(testStruct[i]->b, sizeof("00000"), "%05d", i);
+		sprintf_s(testStruct[i]->c, sizeof("00000"), "%05d", i);
+
+		testStruct[i]->a[0] = 'A';
+		testStruct[i]->b[0] = 'B';
+		testStruct[i]->c[0] = 'C';
+	}
+	return 0;
+}

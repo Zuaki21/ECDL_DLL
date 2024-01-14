@@ -28,7 +28,7 @@ typedef struct ECDSAKeyPair {
 	ECDSAPublicKey publicKey;
 } ECDSAKeyPair;
 
-DLLEXPORT int __stdcall GetKeyString(ECDSAKeyPair* keyPair) {
+DLLEXPORT int __stdcall GetKeyPairString(ECDSAKeyPair* keyPair) {
 	unsigned char rand_hash[SHA256_DIGEST_LENGTH];
 	RAND_bytes(rand_hash, SHA256_DIGEST_LENGTH);
 	BIGNUM* private_key = BN_new();
@@ -91,6 +91,10 @@ void StringToBIGNUM(BIGNUM* bn, char* str) {
 void GetPublicKeyStrings(ECDSAPublicKey* publicKeyStrings[], int size) {
     for (int i = 0; i < size; i++) {
         ECDSAKeyPair* keyPair = (ECDSAKeyPair*)malloc(sizeof(ECDSAKeyPair));
+        if (keyPair == NULL) {
+			fprintf(stderr, "Memory allocation failed\n");
+			exit(EXIT_FAILURE);
+		}
         GetKeyPairString(keyPair);
         // アドレスではなく、値を代入する
         publicKeyStrings[i] = &keyPair->publicKey;
@@ -114,15 +118,16 @@ BIGNUM* H_function(char message[], EC_POINT* r_point, EC_GROUP* group) {
     size_t len = strlen(message) + 2 * BN_num_bytes(x) + 2 * BN_num_bytes(y);
     // 文字列を連結するために動的にメモリを確保
     unsigned char* str = (unsigned char*)malloc(len + 1);
+
     // メモリ確保に失敗した場合のエラーハンドリング
     if (str == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
-    strcpy(str, message);
-    strcat(str, hex_x);
-    strcat(str, hex_y);
+    // 安全に文字列を構築
+    // strcpy,strcatはC4996(非推奨)のため、snprintfを使用
+    snprintf((char*)str, len + 1, "%s%s%s", message, hex_x, hex_y);
 
     // strをSHA256でハッシュしてBIGNUMに変換
     BIGNUM* c = BN_new();
@@ -270,21 +275,30 @@ bool VerifyRing(char message[], int ring_size, EC_POINT* public_keys[],
 }
 
 // String形式からSignRingを呼び出す関数
-DLLEXPORT void __stdcall SignRingString(char message[], int ring_size,
-    ECDSAPublicKey* publicKeyStrings[],
-    ECDSAKeyPair* signer_keyPairString,
-    char* random_s_strings[], char* c_0_string) {
+DLLEXPORT void __stdcall SignRingString(char* message, int ring_size,
+    ECDSAPublicKey** publicKeyStrings,
+    ECDSAKeyPair* signer_keyPairString, char** random_s_strings,
+    char* c_0_string) {
     EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     BIGNUM* signer_private_key = BN_new();
     EC_POINT* signer_public_key = EC_POINT_new(group);
     StringToBIGNUM(signer_private_key, signer_keyPairString->privateKey);
     StringToPublicKey(signer_public_key, group, &signer_keyPairString->publicKey);
     EC_POINT** public_keys = (EC_POINT**)malloc(sizeof(EC_POINT*) * ring_size);
+    if (public_keys == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (int i = 0; i < ring_size; i++) {
         public_keys[i] = EC_POINT_new(group);
         StringToPublicKey(public_keys[i], group, publicKeyStrings[i]);
     }
     BIGNUM** random_s = (BIGNUM**)malloc(sizeof(BIGNUM*) * ring_size);
+    if (random_s == NULL) {
+		fprintf(stderr, "Memory allocation failed\n");
+		exit(EXIT_FAILURE);
+	}
     BIGNUM* c_0 = BN_new();
 
     // リング署名を生成
@@ -317,11 +331,22 @@ DLLEXPORT int __stdcall VerifyRingString(char message[], int ring_size,
     char* random_s_strings[], char* c_0_string) {
     EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
     EC_POINT** public_keys = (EC_POINT**)malloc(sizeof(EC_POINT*) * ring_size);
+    if (public_keys == NULL) {
+		fprintf(stderr, "Memory allocation failed\n");
+		exit(EXIT_FAILURE);
+	}
+
     for (int i = 0; i < ring_size; i++) {
         public_keys[i] = EC_POINT_new(group);
         StringToPublicKey(public_keys[i], group, publicKeyStrings[i]);
     }
+
     BIGNUM** random_s = (BIGNUM**)malloc(sizeof(BIGNUM*) * ring_size);
+    if (random_s == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     BIGNUM* c_0 = BN_new();
     StringToBIGNUM(c_0, c_0_string);
     for (int i = 0; i < ring_size; i++) {
@@ -346,12 +371,14 @@ DLLEXPORT int __stdcall VerifyRingString(char message[], int ring_size,
     return isValid;
 }
 
-typedef struct RingSignature
-{
-    char* message;
-    int ring_size;
-    ECDSAPublicKey* publicKeyStrings[];
-    ECDSAKeyPair* signer_keyPairString;
-    char* random_s_strings[];
-    char* c_0_string;
-} RingSignature;
+// 65文字(64文字+null終端)の16進数文字列をランダムに生成する関数
+DLLEXPORT int __stdcall GetRandomMessage(char* message) {
+    // メッセージをランダムに生成
+    unsigned char rand_hash[SHA256_DIGEST_LENGTH];
+    RAND_bytes(rand_hash, SHA256_DIGEST_LENGTH);
+    BIGNUM* message_bn = BN_new();
+    message_bn = BN_bin2bn(rand_hash, SHA256_DIGEST_LENGTH, NULL);
+    strcpy_s(message, HEX_UNSIGNED_SIZE, BN_bn2hex(message_bn));
+    BN_free(message_bn);
+    return 0;
+}

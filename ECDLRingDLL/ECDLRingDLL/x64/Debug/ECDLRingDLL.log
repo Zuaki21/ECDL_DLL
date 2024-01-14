@@ -1,21 +1,4 @@
 ﻿  dllmain.cpp
 C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(14,10): warning C4067: プリプロセッサ ディレクティブの後に余分な文字がありました - 改行が必要です
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(94,9): error C3861: 'GetKeyPairString': 識別子が見つかりませんでした
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(123,5): error C2664: 'char *strcpy(char *,const char *)': 引数 1 を 'unsigned char *' から 'char *' へ変換できません。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(123,12): message : 指示された型は関連がありません。変換には reinterpret_cast、C スタイル キャストまたはかっこで囲まれた関数スタイル キャストが必要です。
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt\string.h(130,1): message : 'strcpy' の宣言を確認してください
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(123,5): message : 引数リスト '(unsigned char *, char [])' を一致させようとしているとき
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(124,5): error C2664: 'char *strcat(char *,const char *)': 引数 1 を 'unsigned char *' から 'char *' へ変換できません。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(124,12): message : 指示された型は関連がありません。変換には reinterpret_cast、C スタイル キャストまたはかっこで囲まれた関数スタイル キャストが必要です。
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt\string.h(91,5): message : 'strcat' の宣言を確認してください
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(124,5): message : 引数リスト '(unsigned char *, char *)' を一致させようとしているとき
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(125,5): error C2664: 'char *strcat(char *,const char *)': 引数 1 を 'unsigned char *' から 'char *' へ変換できません。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(125,12): message : 指示された型は関連がありません。変換には reinterpret_cast、C スタイル キャストまたはかっこで囲まれた関数スタイル キャストが必要です。
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt\string.h(91,5): message : 'strcat' の宣言を確認してください
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(125,5): message : 引数リスト '(unsigned char *, char *)' を一致させようとしているとき
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(353,21): warning C4200: 非標準の拡張機能が使用されています: 構造体または共用体中にサイズが 0 の配列があります。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(353,21): message : このメンバーは、既定のコンストラクターまたはコピー/移動代入演算子により無視されます
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(354,19): error C2229: struct 'RingSignature' にサイズが 0 の配列があります。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(355,11): warning C4200: 非標準の拡張機能が使用されています: 構造体または共用体中にサイズが 0 の配列があります。
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(355,11): message : このメンバーは、既定のコンストラクターまたはコピー/移動代入演算子により無視されます
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(356,11): error C2229: struct 'RingSignature' にサイズが 0 の配列があります。
+C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(107,19): warning C4101: 'message_hash': ローカル変数は 1 度も使われていません。
+  ECDLRingDLL.vcxproj -> C:\Users\Zuaki\source\repos\ECDLRingDLL\x64\Debug\ECDLRingDLL.dll
