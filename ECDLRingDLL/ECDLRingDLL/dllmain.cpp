@@ -29,6 +29,7 @@ typedef struct ECDSAKeyPair {
 	ECDSAPublicKey publicKey;
 } ECDSAKeyPair;
 
+// この関数をC#から呼び出す
 DLLEXPORT int __stdcall GetKeyPairString(ECDSAKeyPair* keyPair) {
 	unsigned char rand_hash[SHA256_DIGEST_LENGTH];
 	RAND_bytes(rand_hash, SHA256_DIGEST_LENGTH);
@@ -276,6 +277,7 @@ DLLEXPORT bool __stdcall VerifyRing(char message[], int ring_size, EC_POINT* pub
 }
 
 // String形式からSignRingを呼び出す関数
+// この関数をC#から呼び出す
 DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	ECDSAPublicKey** publicKeyStrings,
 	ECDSAKeyPair* signer_keyPairString, char** random_s_strings,
@@ -306,14 +308,13 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	BIGNUM* c_0 = BN_new();
 
 	// リング署名を生成
+	// 【問題】この関数への参照渡ししているはずのrandom_sとc_0が変更されていない
 	SignRing(message, ring_size, public_keys, group, signer_private_key,
 		signer_public_key, random_s, &c_0);
 
 	// Stringに変換
 	for (int i = 0; i < ring_size; i++) {
 		BIGNUMToString(random_s[i], random_s_strings[i]);
-		// 便宜上数字のメッセージを入れる
-		//sprintf_s(random_s_strings[i], sizeof("00000"), "%05d", i);
 	}
 	BIGNUMToString(c_0, c_0_string);
 	// メモリ解放
@@ -331,29 +332,37 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	free(public_keys);
 	//free(random_s);
 
+	// random_s_stringsとc_0_stringの受け渡しが出来ていることの確認用のためコメントアウト
+	// ここでの変更した値はUnity側で確認が取れました．
+	for (int i = 0; i < ring_size; i++) {
+		sprintf_s(random_s_strings[i], sizeof("00000"), "%05d", i);
+	}
+	sprintf_s(c_0_string, sizeof("00000"), "%05d", 12345);
+
+
 	return 0;
 }
 
 // String形式からVerifyRingを呼び出す関数(リング署名が有効なら1を返す)
-DLLEXPORT int __stdcall VerifyRingString(char message[], int ring_size,
-	ECDSAPublicKey* publicKeyStrings[],
-	char* random_s_strings[], char* c_0_string) {
+// この関数をC#から呼び出す
+DLLEXPORT int __stdcall VerifyRingString(char* message, int ring_size,
+	ECDSAPublicKey** publicKeyStrings, char** random_s_strings,
+	char* c_0_string) {
 	EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
 	EC_POINT** public_keys = (EC_POINT**)malloc(sizeof(EC_POINT*) * ring_size);
 	if (public_keys == NULL) {
-		fprintf(stderr, "Memory allocation failed\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "メモリ割り当てに失敗しました。\n");
+		return -1;
 	}
 
 	for (int i = 0; i < ring_size; i++) {
 		public_keys[i] = EC_POINT_new(group);
 		StringToPublicKey(public_keys[i], group, publicKeyStrings[i]);
 	}
-
 	BIGNUM** random_s = (BIGNUM**)malloc(sizeof(BIGNUM*) * ring_size);
 	if (random_s == NULL) {
-		fprintf(stderr, "Memory allocation failed\n");
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "メモリ割り当てに失敗しました。\n");
+		return -1;
 	}
 
 	BIGNUM* c_0 = BN_new();
@@ -381,6 +390,7 @@ DLLEXPORT int __stdcall VerifyRingString(char message[], int ring_size,
 }
 
 // 65文字(64文字+null終端)の16進数文字列をランダムに生成する関数
+// この関数をC#から呼び出す
 DLLEXPORT int __stdcall GetRandomMessage(char* message) {
 	// メッセージをランダムに生成
 	unsigned char rand_hash[SHA256_DIGEST_LENGTH];

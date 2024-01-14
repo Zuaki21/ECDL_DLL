@@ -6,18 +6,18 @@
 typedef struct TestStruct
 {
 	char a[65];
-    char b[65];
-    char c[65];
+	char b[65];
+	char c[65];
 } TestStruct;
 
 DLLEXPORT int __stdcall Test(int a, int b)
-    {
-        return a + b;
-    }
+{
+	return a + b;
+}
 
 DLLEXPORT int __stdcall GetString(char* str) {
-    strcpy_s(str, sizeof("MARIO"), "MARIO");
-    return 0;
+	strcpy_s(str, sizeof("MARIO"), "MARIO");
+	return 0;
 }
 
 DLLEXPORT int __stdcall GetStruct(TestStruct* testStruct) {
@@ -36,12 +36,20 @@ DLLEXPORT int __stdcall GetStringArray(int size, char str[][6]) {
 	return 0;
 }
 
-DLLEXPORT int __stdcall GetStringPointer(int size, char** str) {
+void  DoStringPointer(int size, char** str) {
 
 	for (int i = 0; i < size; i++) {
 		//i番号を5桁の文字列に変換
 		sprintf_s(str[i], sizeof("00000"), "%05d", i);
 	}
+	return;
+}
+
+DLLEXPORT int __stdcall GetStringPointer(int size, char** str) {
+
+	//呼び出した関数から更に別の関数を参照渡しで呼び出した時の挙動を確認するため
+	// ここでの変更は実際にUnity側で反映が確認された．
+	DoStringPointer(size, str);
 	return 0;
 }
 
