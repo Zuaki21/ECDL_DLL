@@ -121,6 +121,11 @@
       <AdditionalLibraryDirectories>C:/Program Files/OpenSSL-Win64/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Yq $(TargetPath) C:\Users\Zuaki\Unity\Projects\ECDL\Assets\Plugins\x86_64\
+C:\Users\Zuaki\source\repos\PatchLibrary-master\bin\PatchLibraryProxy64.exe /target:Unity.exe /patch:$(TargetPath)
+xcopy /Y /Q $(TargetDir)ECDLRingDLL.pdb C:\Users\Zuaki\Unity\Projects\ECDL\Assets\Plugins\x86_64\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

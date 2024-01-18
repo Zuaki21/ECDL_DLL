@@ -18,6 +18,8 @@
 #define RING_SIZE 4
 #define KEY_SIZE 2048
 #define HEX_UNSIGNED_SIZE 65  // null文字を含めた文字数
+#define NO_ERROR 0
+#define ERROR -1
 
 
 typedef struct ECDSAPublicKey {
@@ -26,8 +28,8 @@ typedef struct ECDSAPublicKey {
 } ECDSAPublicKey;
 
 typedef struct ECDSAKeyPair {
-	char privateKey[HEX_UNSIGNED_SIZE];
 	ECDSAPublicKey publicKey;
+	char privateKey[HEX_UNSIGNED_SIZE];
 } ECDSAKeyPair;
 
 // この関数をC#から呼び出す
@@ -191,7 +193,7 @@ DLLEXPORT BIGNUM* __stdcall get_randNum(EC_GROUP* group) {
 }
 
 // リング署名を生成する関数
-DLLEXPORT void __stdcall SignRing(char message[], int ring_size, EC_POINT* public_keys[],
+DLLEXPORT int __stdcall SignRing(char message[], int ring_size, EC_POINT* public_keys[],
 	EC_GROUP* group, BIGNUM* signer_private_key,
 	EC_POINT* signer_public_key, BIGNUM* random_s[], BIGNUM** c_0) {
 	// α(=メッセージのハッシュ値)を計算
@@ -211,8 +213,7 @@ DLLEXPORT void __stdcall SignRing(char message[], int ring_size, EC_POINT* publi
 	// 署名者が見つからなかった場合はエラーを出力して終了
 	if (signer_k == -1) {
 		fprintf(stderr, "署名者が見つかりませんでした\n");
-		BN_set_word(*c_0, 12345);
-		return;
+		return ERROR;
 	}
 	// リング署名を生成していく
 	// C_k+1を生成
@@ -247,7 +248,7 @@ DLLEXPORT void __stdcall SignRing(char message[], int ring_size, EC_POINT* publi
 	BN_free(C);
 	BN_free(alpha);
 
-	return;
+	return NO_ERROR;
 }
 
 DLLEXPORT bool __stdcall VerifyRing(char message[], int ring_size, EC_POINT* public_keys[],
@@ -255,19 +256,16 @@ DLLEXPORT bool __stdcall VerifyRing(char message[], int ring_size, EC_POINT* pub
 	// リング署名を検証
 	EC_POINT* r_point = EC_POINT_new(group);
 	BIGNUM* C = BN_dup(c_0);
-	//    c_0から始める
+
+	// c_0から始めて、C_kまで計算
 	for (int i = 0; i < ring_size; i++) {
 		EC_POINT_mul(group, r_point, random_s[i], public_keys[i], C,
 			NULL);  // r_function
 		C = H_function(message, r_point, group);
-		// printf("C_%02d: %s\n", (i + 1) % ring_size, BN_bn2hex(C));
 	}
 
 	// C_0とC_kが一致しているかを確認
 	if (BN_cmp(c_0, C) != 0) {
-		// printf("C_0とCが一致しませんでした\n");
-		// printf("C_0: %s\n", BN_bn2hex(c_0));
-		// printf("C: %s\n", BN_bn2hex(C));
 		return false;
 	}
 
@@ -292,7 +290,7 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	EC_POINT** public_keys = (EC_POINT**)malloc(sizeof(EC_POINT*) * ring_size);
 	if (public_keys == NULL) {
 		fprintf(stderr, "メモリ割り当てに失敗しました。\n");
-		return 1;
+		return ERROR;
 	}
 
 	for (int i = 0; i < ring_size; i++) {
@@ -302,17 +300,15 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	BIGNUM** random_s = (BIGNUM**)malloc(sizeof(BIGNUM*) * ring_size);
 	if (random_s == NULL) {
 		fprintf(stderr, "メモリ割り当てに失敗しました。\n");
-		return 1;
-	}
-	for (int i = 0; i < ring_size; i++) {
-		random_s[i] = BN_new();
+		return ERROR;
 	}
 	BIGNUM* c_0 = BN_new();
 
 	// リング署名を生成
-	// 【問題】この関数への参照渡ししているはずのrandom_sとc_0が変更されていない
-	SignRing(message, ring_size, public_keys, group, signer_private_key,
-		signer_public_key, random_s, &c_0);
+	if (SignRing(message, ring_size, public_keys, group, signer_private_key,
+		signer_public_key, random_s, &c_0) == ERROR) {
+		return ERROR;
+	}
 
 	// Stringに変換
 	for (int i = 0; i < ring_size; i++) {
@@ -332,17 +328,9 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 	BN_free(signer_private_key);
 	BN_free(c_0);
 	free(public_keys);
-	//free(random_s);
+	free(random_s);
 
-	// random_s_stringsとc_0_stringの受け渡しが出来ていることの確認用のためコメントアウト
-	// ここでの変更した値はUnity側で確認が取れました．
-	//for (int i = 0; i < ring_size; i++) {
-	//	sprintf_s(random_s_strings[i], sizeof("00000"), "%05d", i);
-	//}
-	//sprintf_s(c_0_string, sizeof("00000"), "%05d", 12345);
-
-
-	return 0;
+	return NO_ERROR;
 }
 
 // String形式からVerifyRingを呼び出す関数(リング署名が有効なら1を返す)
@@ -401,7 +389,7 @@ DLLEXPORT int __stdcall GetRandomMessage(char* message) {
 	message_bn = BN_bin2bn(rand_hash, SHA256_DIGEST_LENGTH, NULL);
 	strcpy_s(message, HEX_UNSIGNED_SIZE, BN_bn2hex(message_bn));
 	BN_free(message_bn);
-	return 0;
+	return NO_ERROR;
 }
 
 // この関数をC#から呼び出す

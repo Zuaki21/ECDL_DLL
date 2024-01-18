@@ -1,4 +1,9 @@
 ﻿  dllmain.cpp
-C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(110,16): warning C4101: 'message_hash': ローカル変数は 1 度も使われていません。
-     ライブラリ C:\Users\Zuaki\source\repos\ECDLRingDLL\x64\Debug\ECDLRingDLL.lib とオブジェクト C:\Users\Zuaki\source\repos\ECDLRingDLL\x64\Debug\ECDLRingDLL.exp を作成中
+C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(21,1): warning C4005: 'NO_ERROR': マクロが再定義されました。
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\shared\winerror.h(229,1): message : 'NO_ERROR' の以前の定義を確認してください
+C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(22,1): warning C4005: 'ERROR': マクロが再定義されました。
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\wingdi.h(118,1): message : 'ERROR' の以前の定義を確認してください
+C:\Users\Zuaki\source\repos\ECDLRingDLL\ECDLRingDLL\dllmain.cpp(112,16): warning C4101: 'message_hash': ローカル変数は 1 度も使われていません。
   ECDLRingDLL.vcxproj -> C:\Users\Zuaki\source\repos\ECDLRingDLL\x64\Debug\ECDLRingDLL.dll
+  1 個のファイルをコピーしました
+  1 個のファイルをコピーしました
