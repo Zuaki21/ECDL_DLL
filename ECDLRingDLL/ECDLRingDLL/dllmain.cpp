@@ -11,7 +11,8 @@
 #include <openssl/sha.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>#include "pch.h"
+#include <string.h>
+#include <windows.h>
 
 #define MESSAGE "Hello!"
 #define RING_SIZE 4
@@ -210,6 +211,7 @@ DLLEXPORT void __stdcall SignRing(char message[], int ring_size, EC_POINT* publi
 	// 署名者が見つからなかった場合はエラーを出力して終了
 	if (signer_k == -1) {
 		fprintf(stderr, "署名者が見つかりませんでした\n");
+		BN_set_word(*c_0, 12345);
 		return;
 	}
 	// リング署名を生成していく
@@ -334,10 +336,10 @@ DLLEXPORT int __stdcall SignRingString(char* message, int ring_size,
 
 	// random_s_stringsとc_0_stringの受け渡しが出来ていることの確認用のためコメントアウト
 	// ここでの変更した値はUnity側で確認が取れました．
-	for (int i = 0; i < ring_size; i++) {
-		sprintf_s(random_s_strings[i], sizeof("00000"), "%05d", i);
-	}
-	sprintf_s(c_0_string, sizeof("00000"), "%05d", 12345);
+	//for (int i = 0; i < ring_size; i++) {
+	//	sprintf_s(random_s_strings[i], sizeof("00000"), "%05d", i);
+	//}
+	//sprintf_s(c_0_string, sizeof("00000"), "%05d", 12345);
 
 
 	return 0;
@@ -400,4 +402,30 @@ DLLEXPORT int __stdcall GetRandomMessage(char* message) {
 	strcpy_s(message, HEX_UNSIGNED_SIZE, BN_bn2hex(message_bn));
 	BN_free(message_bn);
 	return 0;
+}
+
+// この関数をC#から呼び出す
+// 公開鍵と秘密鍵が対応しているかを確認する関数
+DLLEXPORT int __stdcall IsValidKeyPair(ECDSAKeyPair* keyPair) {
+	int isValid = false;
+	EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+	EC_POINT* public_key = EC_POINT_new(group);
+	StringToPublicKey(public_key, group, &keyPair->publicKey);
+	BIGNUM* private_key = BN_new();
+	StringToBIGNUM(private_key, keyPair->privateKey);
+	// 公開鍵と秘密鍵が対応しているかを確認
+	EC_POINT* public_key_check = EC_POINT_new(group);
+	EC_POINT_mul(group, public_key_check, private_key, NULL, NULL, NULL);
+	if (EC_POINT_cmp(group, public_key, public_key_check, NULL) != 0) {
+		isValid = false;
+	}
+	else {
+		isValid = true;
+	}
+	// メモリ解放
+	EC_GROUP_free(group);
+	EC_POINT_free(public_key);
+	EC_POINT_free(public_key_check);
+	BN_free(private_key);
+	return isValid;
 }

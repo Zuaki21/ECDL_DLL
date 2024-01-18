@@ -37,7 +37,6 @@ DLLEXPORT int __stdcall GetStringArray(int size, char str[][6]) {
 }
 
 void  DoStringPointer(int size, char** str) {
-
 	for (int i = 0; i < size; i++) {
 		//i番号を5桁の文字列に変換
 		sprintf_s(str[i], sizeof("00000"), "%05d", i);
@@ -49,7 +48,11 @@ DLLEXPORT int __stdcall GetStringPointer(int size, char** str) {
 
 	//呼び出した関数から更に別の関数を参照渡しで呼び出した時の挙動を確認するため
 	// ここでの変更は実際にUnity側で反映が確認された．
-	DoStringPointer(size, str);
+	//DoStringPointer(size, str);
+	for (int i = 0; i < size; i++) {
+		//i番号を5桁の文字列に変換
+		sprintf_s(str[i], sizeof("00000"), "%05d", i);
+	}
 	return 0;
 }
 
