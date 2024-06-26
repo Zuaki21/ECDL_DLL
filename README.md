@@ -6,7 +6,9 @@
 - 具体的な実装内容は[dllmain.cpp](/ECDLRingDLL/ECDLRingDLL/dllmain.cpp)に実装
 
 ## 仕組み
-- OpenSSLを使用
+- OpenSSLの楕円点操作関数を使用
+- 鍵生成にはセキュアな乱数を使用
+- 利用先の言語でBIGNUM型が無い場合を考えStringとの変換関数を噛ませている
 - 128ビットセキュリティに置いてECDSA鍵を使うことでRSA鍵より1/12の鍵長に短縮
 - 楕円曲線暗号ECDSAは一般的なリング署名では対応しないため、"1-out-of-n Signatures from
 a Variety of Keys"の離散対数によるリング署名方式を転用した
